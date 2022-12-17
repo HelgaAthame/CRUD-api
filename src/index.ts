@@ -1,51 +1,220 @@
 import { createServer } from "http";
-import * as fs from 'fs';
-import { resolve } from 'path';
-import { readFile } from 'fs/promises';
-import { parse } from 'url';
+import * as url from 'url';
+let uuid = require('node-uuid');
 
 interface User {
-  id: number,
+  id: string | string[] | undefined,
   name: string,
   age: number,
   hobbies: string[],
 }
 
 const host = 'localhost';
-const port = 4000;
+const port = process.env.PORT || 4000;
 const endPoint = '/api/users';
-const users: User [] = [];
+let users: User [] = [];
+const idRegEx = /[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/;
 
-const main = async () => {
-  const data = await readFile(resolve('data.json'), 'utf8');
-
-  const server = createServer((req, res) => {
-
-    const myUrl = parse(req.url as string, true);
-
-console.log(myUrl);
+const server = createServer((req, res) => {
+  try {
+    const myUrl = url.parse(req.url as string, true);
 
     if (!myUrl?.path?.startsWith(endPoint)) {
-      res.end(`Error code 404\n Incorrect link`);
-    }
+      res.statusCode = 404;
+      res.end(`Requested resource doesn\'t exist`);
+    } else
+
     if (req.method === 'GET') {
+
       if (myUrl.path === endPoint) {
-        res.writeHead(200, "OK");
+        res.statusCode = 200;
+        res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(users as User[]));
+
       } else if (myUrl.path?.startsWith(`${endPoint}/`)) {
 
-      }
-    } else if (req.method === 'POST' && req.url === endPoint) {
+        const findUserId: string[] | null = myUrl.path?.match(idRegEx);
 
-    } else if (req.method === 'PUT' && req.url?.startsWith(endPoint)) {
+        if (findUserId == null) {
+          res.statusCode = 400;
+          res.end('User ID is invalid (not uuid)');
+
+        } else {
+          const strFindId = JSON.stringify(findUserId[0]);
+
+          if (users.length === 0) {
+            res.statusCode = 404;
+            res.end('Record with any userId doesn\'t exist');
+          } else {
+            users.forEach((user, i) => {
+
+              const strUserId = JSON.stringify(user.id as string);
+              if (strFindId === strUserId) {
+                res.statusCode = 200;
+                res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify(user));
+              } else {
+                if (i === users.length - 1 && strFindId !== strUserId) {
+                  res.statusCode = 404;
+                  res.end('Record with this userId doesn\'t exist');
+                }
+              }
+            });
+          }
+        }
+
+      } else if (!myUrl.path?.startsWith(`${endPoint}/`)) {
+        res.statusCode = 404;
+        res.end(`Requested resource doesn\'t exist. please correct url.`);
+      }
+
+    } else if (req.method === 'POST') {
+
+      let data = '';
+
+      req.on('data', chunk => {
+        data += chunk;
+      });
+
+      req.on('end', () => {
+        try {
+          const newUser: User = JSON.parse(data);
+          if (!newUser.name || !newUser.age || !newUser.hobbies) {
+            res.statusCode = 400;
+            res.end('Request body does not contain required fields');
+          } else {
+            if (myUrl.path === endPoint || myUrl.path === `${endPoint}/`) {
+              newUser.id = uuid.v1();
+              users.push(newUser);
+              res.statusCode = 201;
+              res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify(users[users.length - 1]));
+            } else {
+              res.statusCode = 400;
+              res.end('URL is invalid');
+            }
+          }
+        } catch (e) {
+          res.statusCode = 500;
+          res.end(`Sorry... Errors on the server side occur during the processing of your request. \n Please, try again`);
+        }
+      });
+
+    } else if (req.method === 'PUT') {
+      //
+      let data = '';
+
+      req.on('data', chunk => {
+        data += chunk;
+      });
+
+      req.on('end', () => {
+        try {
+
+          const newUser: User = JSON.parse(data);
+
+          if (!newUser.name || !newUser.age || !newUser.hobbies) {
+            res.statusCode = 400;
+            res.end('Request body does not contain required fields');
+
+          } else {
+
+            if (myUrl.path?.startsWith(`${endPoint}/`)) {
+
+              const findUserId = myUrl.path?.match(idRegEx) as string[];
+              if (findUserId == null) {
+                res.statusCode = 400;
+                res.end('User ID is invalid (not uuid)');
+
+              } else {
+                const strFindId = JSON.stringify(findUserId[0]);
+
+                if (users.length === 0) {
+                  res.statusCode = 404;
+                  res.end('Record with any userId doesn\'t exist');
+                }
+
+                for (let i = 0; i < users.length; i += 1) {
+                  const strUserId = JSON.stringify(users[i].id as string);
+                  if (strFindId == strUserId) {
+                    users[i] = {
+                      id: users[i].id,
+                      name: newUser.name,
+                      age: newUser.age,
+                      hobbies: newUser.hobbies
+                    };
+
+                    res.statusCode = 200;
+                    res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify(users[i]));
+
+                  } else {
+                    if (i === users.length - 1 && strFindId !== strUserId) {
+                      res.statusCode = 404;
+                      res.end('Record with this userId doesn\'t exist');
+
+                    }
+                  }
+                }
+
+              }
+            } else {
+              res.statusCode = 400;
+              res.end('URL is invalid');
+            }
+          }
+        } catch (e) {
+          res.statusCode = 500;
+          res.end(`Sorry... Errors on the server side occur during the processing of your request. \n Please, try again`);
+        }
+      });
+      //
 
     } else if (req.method === 'DELETE' && req.url?.startsWith(endPoint)) {
+      if (myUrl.path === endPoint || myUrl.path === `${endPoint}/`) {
+        res.statusCode = 400;
+        res.end('URL is invalid');
+      } else {
+        const findUserId: string[] | null = myUrl.path?.match(idRegEx);
 
+        if (findUserId == null) {
+          res.statusCode = 400;
+          res.end('User ID is invalid (not uuid)');
+
+        } else {
+          const strFindId = JSON.stringify(findUserId[0]);
+
+          if (users.length === 0) {
+            res.statusCode = 404;
+            res.end('Record with any userId doesn\'t exist');
+          } else {
+
+
+            for (let i = 0; i < users.length; i += 1) {
+              const strUserId = JSON.stringify(users[i].id as string);
+              if (strFindId == strUserId) {
+                users.splice(i, 1);
+                res.statusCode = 204;
+                res.end('Record was deleted');
+
+              } else {
+                if (i === users.length - 1 && strFindId !== strUserId) {
+                  res.statusCode = 404;
+                  res.end('Record with this userId doesn\'t exist');
+
+                }
+              }
+            }
+
+          }
+        }
+      }
     }
-  });
+  } catch (e) {
+    res.statusCode = 500;
+    res.end(`Sorry... Errors on the server side that occur during the processing of your request. \n Please, try again`);
+  }
+});
 
 
-  server.listen(port, host);
-}
-
-main();
+  server.listen(port);
