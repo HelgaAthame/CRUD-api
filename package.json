@@ -4,7 +4,7 @@
     "start": "ts-node-esm src/index.ts",
     "start:dev": "nodemon",
     "start:prod": "tsc && node ./build/index.js",
-    "start:multi": "ts-node-esm dist/index.js --cluster=enable",
+    "start:multi": "tsc && node ./build/index.js --cluster=enable",
     "test": "jest --silent --verbose --config test/jest-e2e.json",
     "lint": "eslint . --ext .ts"
   },
