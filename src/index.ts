@@ -17,15 +17,24 @@ const host = 'localhost';
 let port = Number(process.env.PORT) || 4000;
 const endPoint = '/api/users';
 let users: User[];
-readFile('src/data.json', (err, data) => {
-  users = JSON.parse(data.toString());
-})
+
+  readFile('src/data.json', (err, data) => {
+    try {
+      users = JSON.parse(data.toString());
+    } catch (e) {
+      users = [];
+    }
+  })
+
+  if (port === 4000) users=[];
+
 const idRegEx = /[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/;
 
 const args = process.argv;
 
-const server = createServer((req, res) => {
+export const server = createServer((req, res) => {
   try {
+
     const myUrl = url.parse(req.url as string, true);
 
     if (!myUrl?.path?.startsWith(endPoint)) {
@@ -104,6 +113,7 @@ const server = createServer((req, res) => {
               writeFile('src/data.json', JSON.stringify(users), (err) => {
                 if (err) throw new Error('Error while writing users');
               });
+
               res.statusCode = 201;
               res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
               res.end(JSON.stringify(users.at(-1)));
@@ -208,8 +218,6 @@ const server = createServer((req, res) => {
             res.statusCode = 404;
             res.end('Record with any userId doesn\'t exist');
           } else {
-
-
             for (let i = 0; i < users.length; i += 1) {
               const strUserId = JSON.stringify(users[i].id as string);
               if (strFindId == strUserId) {
@@ -219,6 +227,7 @@ const server = createServer((req, res) => {
                 });
                 res.statusCode = 204;
                 res.end('Record was deleted');
+                i+=users.length;
 
               } else {
                 if (i === users.length - 1 && strFindId !== strUserId) {
