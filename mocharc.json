@@ -1,0 +1,4 @@
+{
+  "extensions": [".ts", ".js"],
+  "loader": "ts-node/esm"
+}
