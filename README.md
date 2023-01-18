@@ -30,7 +30,7 @@ Run multiple mode using clusters
 
     npm run start:multi
 
-####API
+#### API
 
 Implemented endpoint **<font color="steelblue">api/users</font>**
 
@@ -47,6 +47,6 @@ Delete user from the database **<font color="steelblue">DELETE api/users/\${user
 
 ####User mandatory fields
 
-#####name: string,
-#####age: number,
-#####hobbies: array of strings or an empty array
+##### name: string,
+##### age: number,
+##### hobbies: array of strings or an empty array
