@@ -45,7 +45,7 @@ Update existing user information **<font color="steelblue">PUT api/users/\${user
 Delete user from the database **<font color="steelblue">DELETE api/users/\${userID}</font>**
 
 
-####User mandatory fields
+#### User mandatory fields
 
 ##### name: string,
 ##### age: number,
