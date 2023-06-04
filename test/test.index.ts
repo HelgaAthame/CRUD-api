@@ -1,9 +1,10 @@
-import { server } from '../src/index';
+import { server } from '../src/server';
 
 import { writeFileSync } from 'fs';
 import { resolve } from 'path';
 import chai from 'chai';
 import chaiHttP from 'chai-http';
+import { dataBase } from '../src/inMemeryDataBase';
 const expect = chai.expect;
 chai.should();
 chai.use(chaiHttP);
