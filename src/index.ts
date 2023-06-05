@@ -21,7 +21,7 @@ let port = Number(process.env.PORT) || 4000;
 const dbPort = Number(process.env.DBPORT) || 3000;
 const args = process.argv;
 
-if (args.length > 2 && args[2] === 'multi') {
+if (args.length > 2 && args.at(-1) === 'multi') {
   const numberCPUs: number = cpus().length;
   const workers = new Array(numberCPUs);
 

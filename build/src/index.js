@@ -45,7 +45,8 @@ const host = 'localhost';
 let port = Number(process.env.PORT) || 4000;
 const dbPort = Number(process.env.DBPORT) || 3000;
 const args = process.argv;
-if (args.length > 2 && args[2] === 'multi') {
+console.log(args);
+if (args.length > 2 && args.at(-1) === 'multi') {
     const numberCPUs = (0, os_1.cpus)().length;
     const workers = new Array(numberCPUs);
     if (cluster_1.default.isPrimary) {
