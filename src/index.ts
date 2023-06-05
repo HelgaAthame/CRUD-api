@@ -23,9 +23,7 @@ if (args.length > 2 && args[2] === 'multi') {
 
   if (cluster.isPrimary) {
 
-    dataBase.listen(dbPort, () => {
-      console.log(`DB is running at PORT ${dbPort}`);
-    });
+    dataBase.listen(dbPort);
 
     for (let i = 0; i < numberCPUs; i += 1) {
       workers[i] = cluster.fork({
@@ -42,7 +40,7 @@ if (args.length > 2 && args[2] === 'multi') {
 
     let count = 1;
     const balancer = createServer((req, res) => {
-
+      try {
         let primaryData = '';
         req.on('data', chunk => {
           primaryData += chunk;
@@ -66,11 +64,9 @@ if (args.length > 2 && args[2] === 'multi') {
                 dataFromWorker += chunk;
               });
               resFromWorker.on('end', () => {
-                console.log(dataFromWorker);
-                  const parsedDataFromWorker = JSON.parse(dataFromWorker);
                   res.statusCode = resFromWorker.statusCode || 500;
                   res.setHeader('Content-Type', 'application/json');
-                  res.end(JSON.stringify(parsedDataFromWorker));
+                  res.end(dataFromWorker);
               });
 
             });
@@ -83,13 +79,17 @@ if (args.length > 2 && args[2] === 'multi') {
 
           } catch (e) {
             res.statusCode = 500;
+            res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify(serverError));
           }
 
           if (count++ === numberCPUs) count = 1;  //round robin
         });
-
-
+      } catch(e) {
+        res.statusCode = 500;
+        res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
+        res.end(serverError);
+      }
     })
     balancer.listen(port, () => {
       console.log(`Primary is running at PORT ${port}`);
@@ -101,9 +101,7 @@ if (args.length > 2 && args[2] === 'multi') {
     server.listen(port);
   }
 } else {
-  dataBase.listen(dbPort, () => {
-    console.log(`DB is running at PORT ${dbPort}`);
-  });
+  dataBase.listen(dbPort);
   server.listen(port, () => {
     console.log(`Server is running at PORT ${port}`);
   });

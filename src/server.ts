@@ -11,7 +11,7 @@ const idRegEx = /[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/;
 const dbPort = Number(process.env.DBPORT) || 3000;
 
   export const server = createServer((req, res) => {
-
+    console.log(`Processing ${req.method} request on port ${process.env.WORKER_PORT}`);
     const optionsGet = {
       port: dbPort,
       method: 'GET',
@@ -37,6 +37,7 @@ const dbPort = Number(process.env.DBPORT) || 3000;
 
       if (!myUrl?.path?.startsWith(endPoint)) {
         res.statusCode = 404;
+        res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
         res.end(resourseDoesntExist);
       } else {
 
@@ -54,6 +55,7 @@ const dbPort = Number(process.env.DBPORT) || 3000;
 
               if (findUserId == null) {
                 res.statusCode = 400;
+                res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
                 res.end(invalidId);
 
               } else {
@@ -63,6 +65,7 @@ const dbPort = Number(process.env.DBPORT) || 3000;
 
                 if (user === null) {
                   res.statusCode = 404;
+                  res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
                   res.end(notExist);
                 } else {
                   res.statusCode = 200;
@@ -73,6 +76,7 @@ const dbPort = Number(process.env.DBPORT) || 3000;
 
             } else if (!myUrl.path?.startsWith(`${endPoint}/`)) {
               res.statusCode = 404;
+              res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
               res.end(resourseDoesntExist);
             }
             break;
@@ -88,6 +92,7 @@ const dbPort = Number(process.env.DBPORT) || 3000;
                 const newUser: User = JSON.parse(data);
                 if (!newUser.username || !newUser.age || !newUser.hobbies) {
                   res.statusCode = 400;
+                  res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
                   res.end(invalidBody);
                 } else {
                   if (myUrl.path === endPoint || myUrl.path === `${endPoint}/`) {
@@ -120,11 +125,13 @@ const dbPort = Number(process.env.DBPORT) || 3000;
 
                   } else {
                     res.statusCode = 400;
+                    res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
                     res.end('URL is invalid');
                   }
                 }
               } catch (e) {
                 res.statusCode = 500;
+                res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
                 res.end(serverError);
               }
             });
@@ -141,6 +148,7 @@ const dbPort = Number(process.env.DBPORT) || 3000;
 
                 if (!newUser.username || !newUser.age || !newUser.hobbies) {
                   res.statusCode = 400;
+                  res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
                   res.end(invalidBody);
                 } else {
 
@@ -149,18 +157,21 @@ const dbPort = Number(process.env.DBPORT) || 3000;
 
                     if (findUserId == null) {
                       res.statusCode = 400;
+                      res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
                       res.end(invalidId);
                     } else {
 
                       const strFindId = JSON.stringify(findUserId[0]);
                       if (database.getAllUsers().length === 0) {
                         res.statusCode = 404;
+                        res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
                         res.end(notExist);
                       } else {
 
                         const user = database.getUserById(strFindId);
                         if (user === null) {
                           res.statusCode = 404;
+                          res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
                           res.end(notExist);
                         } else {
                           const updatedUser = database.updateUser(newUser, strFindId);
@@ -175,11 +186,13 @@ const dbPort = Number(process.env.DBPORT) || 3000;
                     }
                   } else {
                     res.statusCode = 400;
+                    res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
                     res.end(invalidUrl);
                   }
                 }
               } catch (e) {
                 res.statusCode = 500;
+                res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
                 res.end(serverError);
               }
             });
@@ -189,30 +202,34 @@ const dbPort = Number(process.env.DBPORT) || 3000;
             if (req.url?.startsWith(endPoint)) {
               if (myUrl.path === endPoint || myUrl.path === `${endPoint}/`) {
                 res.statusCode = 400;
+                res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
                 res.end(invalidUrl);
               } else {
                 const findUserId: string[] | null = myUrl.path?.match(idRegEx);
 
                 if (findUserId == null) {
                   res.statusCode = 400;
+                  res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
                   res.end(invalidId);
                 } else {
 
                   const strFindId = JSON.stringify(findUserId[0]);
                   if (database.getAllUsers().length === 0) {
                     res.statusCode = 404;
+                    res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
                     res.end(notExist);
                   } else {
 
                     const user = database.getUserById(strFindId);
                     if (user === null) {
                       res.statusCode = 404;
+                      res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
                       res.end(notExist);
                     } else {
                       database.deleteUserById(strFindId);
 
                       /*postToDb();*/
-                      const allUsers = database.getAllUsers();
+                    const allUsers = database.getAllUsers();
                     const postData = JSON.stringify(allUsers);
                     const optionsPost = {
                       port: dbPort,
@@ -228,28 +245,19 @@ const dbPort = Number(process.env.DBPORT) || 3000;
                       });
                       resFromDataBase.on('end', () => {
                         res.statusCode = 204;
-                        //res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
-                        res.end(JSON.stringify({
-                          msg: 'User is found and deleted'
-                        }));;
+                        res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
+                        res.end();
                       });
                     });
                     postReqToDataBase.write(postData);
                     postReqToDataBase.end();
-
-
-
-                      /*res.statusCode = 204;
-                      res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
-                      res.end(JSON.stringify({
-                        msg: 'User is found and deleted'
-                      }));*/
                     }
                   }
                 }
               }
             } else {
               res.statusCode = 400;
+              res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
               res.end(invalidUrl);
             }
             break;
@@ -258,6 +266,7 @@ const dbPort = Number(process.env.DBPORT) || 3000;
       }
     } catch (e) {
       res.statusCode = 500;
+      res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
       res.end(serverError);
     }
 
