@@ -9,9 +9,10 @@ import { invalidBody, invalidId, invalidUrl, notExist, resourseDoesntExist, serv
 const endPoint = '/api/users';
 const idRegEx = /[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/;
 const dbPort = Number(process.env.DBPORT) || 3000;
+const ourPort = Number(process.env.WORKER_PORT) || 4000;
 
   export const server = createServer((req, res) => {
-    console.log(`Processing ${req.method} request on port ${process.env.WORKER_PORT}`);
+    console.log(`Processing ${req.method} request on port ${ourPort}`);
     const optionsGet = {
       port: dbPort,
       method: 'GET',

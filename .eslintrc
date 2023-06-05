@@ -3,11 +3,11 @@
     "airbnb",
     "prettier",
     "eslint:recommended",
-    "plugin:@typescript-eslint/recommended",
+    "plugin:@typescript-eslint/recommended"
   ],
   "plugins": [
     "prettier",
-    "@typescript-eslint",
+    "@typescript-eslint"
   ],
   "parser": "@typescript-eslint/parser",
   "rules": {

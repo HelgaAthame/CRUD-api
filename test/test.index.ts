@@ -1,6 +1,6 @@
 import { server } from '../src/server';
 
-import { writeFileSync } from 'fs';
+//import { writeFileSync } from 'fs';
 import { resolve } from 'path';
 import chai from 'chai';
 import chaiHttP from 'chai-http';
@@ -9,28 +9,20 @@ const expect = chai.expect;
 chai.should();
 chai.use(chaiHttP);
 
+dataBase.listen(3000);
+
 type testData = {
-  name: string;
+  username: string;
   age: number;
   hobbies: string[];
   id?: string;
 }
 const TEST_DATA: testData[] = [
-  {name: 'John', age: 23, hobbies: ['reading', 'swimming', 'basketball']},
-  {name: 'Ann', age: 25, hobbies: ['cooking', 'bicycle']}
-]
+  {username: 'John', age: 23, hobbies: ['reading', 'swimming', 'basketball']},
+  {username: 'Ann', age: 25, hobbies: ['cooking', 'bicycle']}
+];
+
 let id: string;
-
-writeFileSync(resolve('src/data.json'), "[]");
-
-describe('CRUD API', () => {
-  before(() => {
-    const TEST_DATA = [
-      {"name":"John","age":"23","hobbies": ["reading", "swimming", "basketball"]},
-      {"name":"Ann","age":"25","hobbies": ["cooking", "bicycle"]}
-    ]
-  })
-})
 
 describe('CRUD API 1st test scenario', () => {
   //1
@@ -42,7 +34,6 @@ describe('CRUD API 1st test scenario', () => {
         res.should.have.status(200);
         res.body.should.be.a('array');
         res.body.length.should.be.eql(0);
-
         done()
     })
   })
@@ -56,7 +47,7 @@ describe('CRUD API 1st test scenario', () => {
         res.should.have.status(201);
         res.body.should.be.a('object');
         res.body.should.have.property('id');
-        res.body.should.have.property('name');
+        res.body.should.have.property('username');
         res.body.should.have.property('age');
         res.body.should.have.property('hobbies');
         id = res.body.id;
@@ -87,7 +78,7 @@ describe('CRUD API 1st test scenario', () => {
         res.should.have.status(200);
         res.body.should.be.a('object');
         res.body.should.have.property('id');
-        res.body.should.have.property('name');
+        res.body.should.have.property('username');
         res.body.should.have.property('age');
         res.body.should.have.property('hobbies');
         res.body.id.should.be.eql(id);
@@ -99,13 +90,13 @@ describe('CRUD API 1st test scenario', () => {
     chai
       .request(server)
       .put(`/api/users/${TEST_DATA[1].id}`)
-      .send({"name":"Kate","age":"20","hobbies": ["music", "swimming", "sleeping"]})
+      .send({"username":"Kate","age":"20","hobbies": ["music", "swimming", "sleeping"]})
       .end ((err, res) => {
         expect(err).to.be.null;
         res.should.have.status(200);
         res.body.should.be.a('object');
         res.body.should.have.property('id');
-        res.body.should.have.property('name');
+        res.body.should.have.property('username');
         res.body.should.have.property('age');
         res.body.should.have.property('hobbies');
         res.body.id.should.be.eql(id);
@@ -123,8 +114,8 @@ describe('CRUD API 1st test scenario', () => {
         res.body.should.be.a('object');
         res.body.should.have.property('id');
         res.body.id.should.be.eql(TEST_DATA[1].id);
-        res.body.should.have.property('name');
-        res.body.name.should.be.eql("Kate");
+        res.body.should.have.property('username');
+        res.body.username.should.be.eql("Kate");
         res.body.should.have.property('age');
         res.body.age.should.be.eql("20");
         res.body.should.have.property('hobbies');
@@ -133,7 +124,7 @@ describe('CRUD API 1st test scenario', () => {
         done()
     })
   })
-    //7
+  //7
   it('should delete user by ID (confirmation of successful deletion is expected)', (done) => {
     chai
       .request(server)
@@ -142,15 +133,11 @@ describe('CRUD API 1st test scenario', () => {
         expect(err).to.be.null;
         res.should.have.status(204);
         done()
-
       })
   })
 })
 
 describe('CRUD API 2nd test scenario', () => {
-  before(()=> {
-    writeFileSync(resolve('src/data.json'), "[]");
-  })
   // 1
   it('should create new user (a response containing newly created record is expected)', (done) => {
     chai
@@ -161,7 +148,7 @@ describe('CRUD API 2nd test scenario', () => {
         res.should.have.status(201);
         res.body.should.be.a('object');
         res.body.should.have.property('id');
-        res.body.should.have.property('name');
+        res.body.should.have.property('username');
         res.body.should.have.property('age');
         res.body.should.have.property('hobbies');
         id = res.body.id;
@@ -178,7 +165,6 @@ describe('CRUD API 2nd test scenario', () => {
         res.should.have.status(200);
         res.body.should.be.a('array');
         res.body.length.should.be.eql(1);
-
         done()
     })
   })
@@ -215,7 +201,6 @@ describe('CRUD API 2nd test scenario', () => {
         expect(err).to.be.null;
         res.should.have.status(204);
         done()
-
       })
   })
   //6
@@ -234,7 +219,7 @@ describe('CRUD API 2nd test scenario', () => {
 
 describe('CRUD API 3rd test scenario', () => {
   //1
-  it('try create new user without name field (a response containing newly created record is expected)', (done) => {
+  it('try create new user without username field (a response containing newly created record is expected)', (done) => {
     chai
       .request(server)
       .post('/api/users')
@@ -254,7 +239,7 @@ it('should create new user (a response containing newly created record is expect
       res.should.have.status(201);
       res.body.should.be.a('object');
       res.body.should.have.property('id');
-      res.body.should.have.property('name');
+      res.body.should.have.property('username');
       res.body.should.have.property('age');
       res.body.should.have.property('hobbies');
       id = res.body.id;
@@ -330,12 +315,7 @@ it('should delete user by ID (confirmation of successful deletion is expected)',
         res.should.have.status(200);
         res.body.should.be.a('array');
         res.body.length.should.be.eql(0);
-
       done()
     })
   })
 });
-
-  // попытаться удаліть несуществующего пользователя
-  // удалить пользователя верно
-  // вывести массив пользователей

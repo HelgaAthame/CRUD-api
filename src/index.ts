@@ -102,6 +102,7 @@ if (args.length > 2 && args[2] === 'multi') {
   }
 } else {
   dataBase.listen(dbPort);
+  process.env.WORKER_PORT = '4000';
   server.listen(port, () => {
     console.log(`Server is running at PORT ${port}`);
   });
