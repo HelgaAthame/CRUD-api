@@ -4,7 +4,8 @@ import { User } from './userInterface';
 import { database } from './inMemeryDataBase';
 import uuid from 'node-uuid';
 import { postToDb } from "./postToDb";
-import { invalidBody, invalidId, invalidUrl, notExist, resourseDoesntExist, serverError } from "./errorMessages";
+import { invalidBody, invalidId, invalidJSON, invalidUrl, notExist, resourseDoesntExist, serverError } from "./errorMessages";
+import { validateJSON } from "./validateJSON";
 
 const endPoint = '/api/users';
 const idRegEx = /[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/;
@@ -88,52 +89,57 @@ const ourPort = Number(process.env.WORKER_PORT) || 4000;
               data += chunk;
             });
             req.on('end', () => {
-
-              try {
-                const newUser: User = JSON.parse(data);
-                if (!newUser.username || !newUser.age || !newUser.hobbies) {
-                  res.statusCode = 400;
-                  res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
-                  res.end(invalidBody);
-                } else {
-                  if (myUrl.path === endPoint || myUrl.path === `${endPoint}/`) {
-                    newUser.id = uuid.v1();
-                    database.createUser(newUser);
-
-                    /*postToDb();*/
-                    const allUsers = database.getAllUsers();
-                    const postData = JSON.stringify(allUsers);
-                    const optionsPost = {
-                      port: dbPort,
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                        'Content-Length': Buffer.byteLength(postData),
-                      },
-                    };
-                    const postReqToDataBase = request(optionsPost, (resFromDataBase) => {
-                      resFromDataBase.on('data', (chunk) => {
-                        console.log(`BODY: ${chunk}`);
-                      });
-                      resFromDataBase.on('end', () => {
-                        res.statusCode = 201;
-                        res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
-                        res.end(JSON.stringify(newUser));
-                      });
-                    });
-                    postReqToDataBase.write(postData);
-                    postReqToDataBase.end();
-
-                  } else {
+              if (!validateJSON(data)) {
+                res.statusCode = 400;
+                res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
+                res.end(invalidJSON);
+              } else {
+                try {
+                  const newUser: User = JSON.parse(data);
+                  if (!newUser.username || !newUser.age || !newUser.hobbies) {
                     res.statusCode = 400;
                     res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
-                    res.end('URL is invalid');
+                    res.end(invalidBody);
+                  } else {
+                    if (myUrl.path === endPoint || myUrl.path === `${endPoint}/`) {
+                      newUser.id = uuid.v1();
+                      database.createUser(newUser);
+
+                      /*postToDb();*/
+                      const allUsers = database.getAllUsers();
+                      const postData = JSON.stringify(allUsers);
+                      const optionsPost = {
+                        port: dbPort,
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          'Content-Length': Buffer.byteLength(postData),
+                        },
+                      };
+                      const postReqToDataBase = request(optionsPost, (resFromDataBase) => {
+                        resFromDataBase.on('data', (chunk) => {
+                          console.log(`BODY: ${chunk}`);
+                        });
+                        resFromDataBase.on('end', () => {
+                          res.statusCode = 201;
+                          res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
+                          res.end(JSON.stringify(newUser));
+                        });
+                      });
+                      postReqToDataBase.write(postData);
+                      postReqToDataBase.end();
+
+                    } else {
+                      res.statusCode = 400;
+                      res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
+                      res.end('URL is invalid');
+                    }
                   }
+                } catch (e) {
+                  res.statusCode = 500;
+                  res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
+                  res.end(serverError);
                 }
-              } catch (e) {
-                res.statusCode = 500;
-                res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
-                res.end(serverError);
               }
             });
             break;
@@ -144,57 +150,63 @@ const ourPort = Number(process.env.WORKER_PORT) || 4000;
               putData += chunk;
             });
             req.on('end', () => {
-              try {
-                const newUser: User = JSON.parse(putData);
+              if (!validateJSON(putData)) {
+                res.statusCode = 400;
+                res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
+                res.end(invalidJSON);
+              } else {
+                try {
+                  const newUser: User = JSON.parse(putData);
 
-                if (!newUser.username || !newUser.age || !newUser.hobbies) {
-                  res.statusCode = 400;
-                  res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
-                  res.end(invalidBody);
-                } else {
+                  if (!newUser.username || !newUser.age || !newUser.hobbies) {
+                    res.statusCode = 400;
+                    res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
+                    res.end(invalidBody);
+                  } else {
 
-                  if (myUrl.path?.startsWith(`${endPoint}/`)) {
-                    const findUserId = myUrl.path?.match(idRegEx) as string[];
+                    if (myUrl.path?.startsWith(`${endPoint}/`)) {
+                      const findUserId = myUrl.path?.match(idRegEx) as string[];
 
-                    if (findUserId == null) {
-                      res.statusCode = 400;
-                      res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
-                      res.end(invalidId);
-                    } else {
-
-                      const strFindId = JSON.stringify(findUserId[0]);
-                      if (database.getAllUsers().length === 0) {
-                        res.statusCode = 404;
+                      if (findUserId == null) {
+                        res.statusCode = 400;
                         res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
-                        res.end(notExist);
+                        res.end(invalidId);
                       } else {
 
-                        const user = database.getUserById(strFindId);
-                        if (user === null) {
+                        const strFindId = JSON.stringify(findUserId[0]);
+                        if (database.getAllUsers().length === 0) {
                           res.statusCode = 404;
                           res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
                           res.end(notExist);
                         } else {
-                          const updatedUser = database.updateUser(newUser, strFindId);
 
-                          postToDb();
+                          const user = database.getUserById(strFindId);
+                          if (user === null) {
+                            res.statusCode = 404;
+                            res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
+                            res.end(notExist);
+                          } else {
+                            const updatedUser = database.updateUser(newUser, strFindId);
 
-                          res.statusCode = 200;
-                          res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
-                          res.end(JSON.stringify(updatedUser));
+                            postToDb();
+
+                            res.statusCode = 200;
+                            res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
+                            res.end(JSON.stringify(updatedUser));
+                          }
                         }
                       }
+                    } else {
+                      res.statusCode = 400;
+                      res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
+                      res.end(invalidUrl);
                     }
-                  } else {
-                    res.statusCode = 400;
-                    res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
-                    res.end(invalidUrl);
                   }
+                } catch (e) {
+                  res.statusCode = 500;
+                  res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
+                  res.end(serverError);
                 }
-              } catch (e) {
-                res.statusCode = 500;
-                res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
-                res.end(serverError);
               }
             });
             break;

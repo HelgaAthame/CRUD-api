@@ -12,6 +12,10 @@ process.on('uncaughtException', function (err) {
   console.log(err);
 });
 
+process.on('SIGINT', () => {
+  setImmediate(() => process.exit(0));
+});
+
 const host = 'localhost';
 let port = Number(process.env.PORT) || 4000;
 const dbPort = Number(process.env.DBPORT) || 3000;

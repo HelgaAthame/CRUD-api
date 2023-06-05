@@ -3,11 +3,10 @@
   "scripts": {
     "start": "ts-node-esm src/index.ts",
     "start:dev": "nodemon",
-    "start:prod": "tsc && node ./build/index.js",
-    "start:multi": "tsc && node ./build/index.js -- multi",
+    "start:prod": "tsc && node ./build/src/index.js",
+    "start:multi": "tsc && node ./build/src/index.js -- multi",
     "start:dev-multi": "nodemon -- multi",
-    "test": "mocha --parallel -r ts-node/register ./test/test.index.ts",
-    "lint": "eslint . --ext .ts"
+    "test": "mocha --parallel -r ts-node/register ./test/test.index.ts"
   },
   "devDependencies": {
     "@types/chai": "^4.3.4",

@@ -8,6 +8,8 @@ written with Typescript and Node.js
 
     git clone git@github.com:HelgaAthame/CRUD-api.git
 
+### Go to the development branch **crud-api**
+
     git checkout crud-api
 
 #### How to install
