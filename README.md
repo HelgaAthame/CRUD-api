@@ -6,7 +6,9 @@ written with Typescript and Node.js
 
 #### How to download
 
-    git clone ...
+    git clone git@github.com:HelgaAthame/CRUD-api.git
+
+    git checkout crud-api
 
 #### How to install
 
@@ -14,19 +16,19 @@ written with Typescript and Node.js
 
 #### How to run
 
-Run application in development mode
+##### Run application in development mode
 
     npm run start:dev
 
-Run application in production mode
+##### Run application in production mode
 
     npm run start:prod
 
-Run test scenarios for application
+##### Run test scenarios for application
 
     npm test
 
-Run multiple mode using clusters
+##### Run multiple mode using clusters
 
     npm run start:multi
 
@@ -47,6 +49,6 @@ Delete user from the database **<font color="steelblue">DELETE api/users/\${user
 
 #### User mandatory fields
 
-##### name: string,
+##### username: string,
 ##### age: number,
 ##### hobbies: array of strings or an empty array

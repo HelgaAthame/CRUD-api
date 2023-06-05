@@ -39,7 +39,6 @@ class DataBase {
       if (user.username) ourUser.username = user.username;
       if (user.hobbies) ourUser.hobbies = user.hobbies;
     }
-    console.log(ourUser)
     return ourUser;
   }
   deleteUserById (id: string) {
