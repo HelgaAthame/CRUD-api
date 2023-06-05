@@ -8,7 +8,7 @@ written with Typescript and Node.js
 
     git clone git@github.com:HelgaAthame/CRUD-api.git
 
-### Go to the development branch **crud-api**
+#### Go to crud-api branch
 
     git checkout crud-api
 
