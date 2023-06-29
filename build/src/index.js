@@ -45,13 +45,12 @@ const host = 'localhost';
 let port = Number(process.env.PORT) || 4000;
 const dbPort = Number(process.env.DBPORT) || 3000;
 const args = process.argv;
-console.log(args);
 if (args.length > 2 && args.at(-1) === 'multi') {
     const numberCPUs = (0, os_1.cpus)().length;
     const workers = new Array(numberCPUs);
     if (cluster_1.default.isPrimary) {
         inMemeryDataBase_1.dataBase.listen(dbPort);
-        for (let i = 0; i < numberCPUs; i += 1) {
+        for (let i = 0; i < numberCPUs - 1; i += 1) {
             workers[i] = cluster_1.default.fork({
                 WORKER_PORT: port + i + 1,
             });
@@ -99,7 +98,7 @@ if (args.length > 2 && args.at(-1) === 'multi') {
                         res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
                         res.end(JSON.stringify(errorMessages_1.serverError));
                     }
-                    if (count++ === numberCPUs)
+                    if (count++ === numberCPUs - 1)
                         count = 1; //round robin
                 });
             }

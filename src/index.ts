@@ -29,7 +29,7 @@ if (args.length > 2 && args.at(-1) === 'multi') {
 
     dataBase.listen(dbPort);
 
-    for (let i = 0; i < numberCPUs; i += 1) {
+    for (let i = 0; i < numberCPUs - 1; i += 1) {
       workers[i] = cluster.fork({
         WORKER_PORT: port + i + 1,
       });
@@ -87,7 +87,7 @@ if (args.length > 2 && args.at(-1) === 'multi') {
             res.end(JSON.stringify(serverError));
           }
 
-          if (count++ === numberCPUs) count = 1;  //round robin
+          if (count++ === numberCPUs - 1) count = 1;  //round robin
         });
       } catch(e) {
         res.statusCode = 500;
