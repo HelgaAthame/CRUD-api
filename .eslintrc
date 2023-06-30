@@ -1,0 +1,22 @@
+{
+  "extends": [
+    "airbnb",
+    "prettier",
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "plugins": [
+    "prettier",
+    "@typescript-eslint"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "rules": {
+    "@typescript-eslint/no-explicit-any": 2
+      /* тут пишите правила,
+       * так же при использовании конфигов,
+       *  вам скорей всего захочется какие-то
+       * правила, используемые в них, отключить,
+       * это можно сделать тут
+       */
+  }
+}
